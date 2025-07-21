@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["sfctl-ai"]
+
+[workspace.dependencies]
+tokio = { version = "1", default-features = false, features = [
+  "io-util",
+  "io-std",
+  "macros",
+  "rt",
+  "signal",
+  "time",
+  "process",
+] }
+tokio-util = { version = "0.7", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+genai = "=0.4.0-alpha.6"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+tracing = "0.1"
+tracing-appender = "0.2"
+futures = "0.3"

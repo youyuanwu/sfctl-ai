@@ -1,0 +1,5 @@
+target
+*.info
+codecov.json
+.vscode
+logs
