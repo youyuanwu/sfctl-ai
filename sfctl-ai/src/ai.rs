@@ -7,7 +7,7 @@ use genai::{
     resolver::{AuthData, AuthResolver},
 };
 
-use crate::{model::extract_code_blocks, pwsh::PwshSession};
+use crate::{cmd_parse::CmdKind, model::extract_code_blocks, pwsh::PwshSession};
 
 const MODEL: &str = "gemini-2.0-flash";
 const SYSTEM_PROMPT: &str = include_str!("system_prompt.txt");
@@ -97,8 +97,17 @@ pub struct AiChat {
 impl AiChat {
     pub async fn process_ps_command(&mut self) {
         while let Some(code) = self.pending_ps_commands.pop_front() {
+            let code = PwshSession::trim_command(&code);
+            // classify the command
+            let kind = crate::cmd_parse::classify_cmd(&code);
+            let need_ack = !matches!(kind, CmdKind::Read);
+
             // ask user permission to run the command
-            let ack = crate::ack::ack_command(&code).await;
+            let ack = if need_ack {
+                crate::ack::ack_command(&code).await
+            } else {
+                true
+            };
             let tools_content = if !ack {
                 tracing::info!("User declined to run the command: {}", code);
                 println!("Please provide reason for declining:");
