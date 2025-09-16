@@ -135,14 +135,14 @@ mod tests {
         ```text
         This is another text block.
         ```"#;
-        let code_blocks = extract_code_blocks(&mycode);
+        let code_blocks = extract_code_blocks(mycode);
         assert_eq!(code_blocks.len(), 2, "Expected two code blocks");
         assert_eq!(code_blocks[0], "let x = 42;", "Code block content mismatch");
         assert_eq!(
             code_blocks[1], "let y = 100;",
             "Code block content mismatch"
         );
-        let text_blocks = extract_text_blocks(&mycode);
+        let text_blocks = extract_text_blocks(mycode);
         assert_eq!(text_blocks.len(), 2, "Expected two text blocks");
         assert_eq!(
             text_blocks[0], "This is a text block.",

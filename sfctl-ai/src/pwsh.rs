@@ -64,7 +64,7 @@ impl PwshSession {
 
         // Remove the echoed command from the beginning of the output
         // Look for the exact wrapped command that was echoed back
-        if let Some(pos) = output.find(&wrapped_command.trim_end()) {
+        if let Some(pos) = output.find(wrapped_command.trim_end()) {
             // Remove everything up to and including the echoed command
             output = output[pos + wrapped_command.trim_end().len()..].to_string();
             // Remove any leading newline that might remain
