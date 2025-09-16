@@ -34,7 +34,7 @@ impl PwshSession {
         // Use Invoke-Command with a marker to simplify parsing
         let marker = "___COMMAND_END___";
         let wrapped_command = format!(
-            "Invoke-Command -ScriptBlock {{ try {{ {} }} catch {{ Write-Error $_.Exception.Message }} }} 2>&1; Write-Output '{}'\n",
+            "Invoke-Command -ScriptBlock {{ try {{ {} }} catch {{ Write-Output $_.Exception.Message }} }}; Write-Output '{}'\n",
             command, marker
         );
 
@@ -106,9 +106,8 @@ mod tests {
             .await
             .unwrap();
         assert!(
-            output.contains(
-                "Write-Error: The term 'Bad-Command-That-Does-Not-Exist' is not recognized"
-            )
+            output.contains("The term 'Bad-Command-That-Does-Not-Exist' is not recognized"),
+            "Output was: {output}",
         );
         assert!(output.contains("Check the spelling of the name"));
     }
