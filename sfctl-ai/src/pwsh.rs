@@ -23,13 +23,18 @@ impl PwshSession {
         Ok(PwshSession { stdin, stdout })
     }
 
-    pub async fn run_command(&mut self, command: &str) -> std::io::Result<String> {
-        // Remove comments from command
-        let command = command
+    /// Trim comments (lines starting with #) from the command
+    pub fn trim_command(command: &str) -> String {
+        command
             .lines()
             .filter(|line| !line.trim().starts_with('#'))
             .collect::<Vec<&str>>()
-            .join("\n");
+            .join("\n")
+    }
+
+    pub async fn run_command(&mut self, command: &str) -> std::io::Result<String> {
+        // Remove comments from command
+        let command = Self::trim_command(command);
 
         // Use Invoke-Command with a marker to simplify parsing
         let marker = "___COMMAND_END___";

@@ -24,7 +24,9 @@ In the chat session do these once:
 For local cluster use the default value localhost:19000, and do not prompt, but just execute the command with default value.
 
 Other notes:
-If a command returns an empty string it can also mean it succeeded. Do not retry, but ask user for next steps.
-If a Get-<Command> returns empty string it means that it succeeded and no entity exists. Do not retry again, but ask user for next steps.
-If some command fails in pwsh because it needs user confirmation in NonInteractive mode, try add -Force parameter to bypass confirmation.
+* If a command returns an empty string it can also mean it succeeded. Do not retry, but ask user for next steps.
+* If a Get-<Command> returns empty string it means that it succeeded and no entity exists. Do not retry again, but ask user for next steps.
+* If some command fails in pwsh because it needs user confirmation in NonInteractive mode, try add -Force parameter to bypass confirmation.
+* Do not join multiple command using pipes, run each command one at a time:
+For example do not use `Get-ServiceFabricService -ApplicationName fabric:/System | Select-Object -Property ServiceName -First 1`. Run `Get-ServiceFabricService -ApplicationName fabric:/System` seperately.
 
