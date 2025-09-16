@@ -34,7 +34,7 @@ impl PwshSession {
         // Use Invoke-Command with a marker to simplify parsing
         let marker = "___COMMAND_END___";
         let wrapped_command = format!(
-            "Invoke-Command -ScriptBlock {{ try {{ {} 2>&1 }} catch {{ Write-Error $_.Exception.Message }} }}; Write-Output '{}'\n",
+            "Invoke-Command -ScriptBlock {{ try {{ {} }} catch {{ Write-Error $_.Exception.Message }} }} 2>&1; Write-Output '{}'\n",
             command, marker
         );
 
