@@ -44,7 +44,7 @@ impl PwshSession {
         let mut output = String::new();
         let mut line = String::new();
         let mut found_marker = false;
-        
+
         loop {
             line.clear();
             let n = self.stdout.read_line(&mut line).await?;
@@ -72,7 +72,7 @@ impl PwshSession {
                 output = output[1..].to_string();
             }
         }
-        
+
         Ok(output.trim().to_string())
     }
 }
@@ -84,19 +84,13 @@ mod tests {
     #[tokio::test]
     async fn test_pwsh_session() {
         let mut session = PwshSession::new().unwrap();
-        
+
         // Test simple command with exact output
-        let output = session
-            .run_command("Write-Output 'Hello'")
-            .await
-            .unwrap();
+        let output = session.run_command("Write-Output 'Hello'").await.unwrap();
         assert_eq!(output, "Hello");
 
         // Test arithmetic with exact result
-        let output = session
-            .run_command("Write-Output (2 + 3)")
-            .await
-            .unwrap();
+        let output = session.run_command("Write-Output (2 + 3)").await.unwrap();
         assert_eq!(output, "5");
 
         // Test PowerShell process name
@@ -107,8 +101,15 @@ mod tests {
         assert_eq!(output, "pwsh");
 
         // Test bad command error handling
-        let output = session.run_command("Bad-Command-That-Does-Not-Exist").await.unwrap();
-        assert!(output.contains("Write-Error: The term 'Bad-Command-That-Does-Not-Exist' is not recognized"));
+        let output = session
+            .run_command("Bad-Command-That-Does-Not-Exist")
+            .await
+            .unwrap();
+        assert!(
+            output.contains(
+                "Write-Error: The term 'Bad-Command-That-Does-Not-Exist' is not recognized"
+            )
+        );
         assert!(output.contains("Check the spelling of the name"));
     }
 }
