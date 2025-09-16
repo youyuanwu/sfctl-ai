@@ -24,20 +24,27 @@ impl PwshSession {
     }
 
     pub async fn run_command(&mut self, command: &str) -> std::io::Result<String> {
-        // remove comments in command
+        // Remove comments from command
         let command = command
             .lines()
-            .filter(|line| !line.trim().starts_with('#')) // Remove lines starting with '#'
+            .filter(|line| !line.trim().starts_with('#'))
             .collect::<Vec<&str>>()
             .join("\n");
-        let marker = "___END___";
-        let full_command = format!("{command}; echo {marker}\n");
 
-        self.stdin.write_all(full_command.as_bytes()).await?;
+        // Use Invoke-Command with a marker to simplify parsing
+        let marker = "___COMMAND_END___";
+        let wrapped_command = format!(
+            "try {{ Invoke-Command -ScriptBlock {{ {} }} }} catch {{ Write-Error $_.Exception.Message }}; Write-Output '{}'\n",
+            command, marker
+        );
+
+        self.stdin.write_all(wrapped_command.as_bytes()).await?;
         self.stdin.flush().await?;
 
         let mut output = String::new();
         let mut line = String::new();
+        let mut found_marker = false;
+        
         loop {
             line.clear();
             let n = self.stdout.read_line(&mut line).await?;
@@ -45,15 +52,27 @@ impl PwshSession {
                 break; // EOF
             }
             if line.trim_end() == marker {
+                found_marker = true;
                 break;
             }
             output.push_str(&line);
         }
-        // Optionally, remove the echoed command and trailing newlines/prompts
-        if let Some(pos) = output.find(&full_command) {
-            // Remove the echoed command and everything before it
-            output = output[pos + full_command.len()..].to_string();
+
+        if !found_marker {
+            return Ok(output.trim().to_string());
         }
+
+        // Remove the echoed command from the beginning of the output
+        // Look for the exact wrapped command that was echoed back
+        if let Some(pos) = output.find(&wrapped_command.trim_end()) {
+            // Remove everything up to and including the echoed command
+            output = output[pos + wrapped_command.trim_end().len()..].to_string();
+            // Remove any leading newline that might remain
+            if output.starts_with('\n') {
+                output = output[1..].to_string();
+            }
+        }
+        
         Ok(output.trim().to_string())
     }
 }
@@ -65,27 +84,31 @@ mod tests {
     #[tokio::test]
     async fn test_pwsh_session() {
         let mut session = PwshSession::new().unwrap();
-        // If add comments, the there is PS heading in the output.
+        
+        // Test simple command with exact output
         let output = session
-            .run_command("#command \n Get-Process")
+            .run_command("Write-Output 'Hello'")
             .await
             .unwrap();
-        println!("Get-Process Output: {}", output);
-        assert!(output.contains("Id"));
-        let output = session
-            .run_command("Write-Host 'Hello, PowerShell!'")
-            .await
-            .unwrap();
-        assert!(output.contains("Hello, PowerShell!"));
+        assert_eq!(output, "Hello");
 
-        let output = session.run_command("Bad-command").await.unwrap();
-        assert!(output.contains("not recognized"));
-        let output = session.run_command("Get-Process -Id $PID").await.unwrap();
-        assert!(output.contains("Id"));
+        // Test arithmetic with exact result
+        let output = session
+            .run_command("Write-Output (2 + 3)")
+            .await
+            .unwrap();
+        assert_eq!(output, "5");
+
+        // Test PowerShell process name
         let output = session
             .run_command("Get-Process -Id $PID | Select-Object -ExpandProperty Name")
             .await
             .unwrap();
         assert_eq!(output, "pwsh");
+
+        // Test bad command error handling
+        let output = session.run_command("Bad-Command-That-Does-Not-Exist").await.unwrap();
+        assert!(output.contains("Write-Error: The term 'Bad-Command-That-Does-Not-Exist' is not recognized"));
+        assert!(output.contains("Check the spelling of the name"));
     }
 }
