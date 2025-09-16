@@ -136,7 +136,7 @@ impl AiChat {
             self.req = self
                 .req
                 .clone()
-                .append_message(ChatMessage::user(format!("{}", reason)));
+                .append_message(ChatMessage::user(reason.to_string()));
         }
         self.run_prompt().await
     }
