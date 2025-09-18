@@ -1,3 +1,18 @@
+# Dev notes
+Quick Start:
+```ps1
+# set api key in pwsh
+$env:GEMINI_API_KEY = 'my-key'
+
+# or load it from file
+Set-Content -Value "my-key" -Path .\target\key.txt
+$env:GEMINI_API_KEY = Get-Content -Path ".\target\key.txt"
+
+# run the app
+cargo run --bin sfctl-ai 
+```
+
+# Other stuff
 ```ps1
 $env:GEMINI_API_KEY = 'my-key'
 

@@ -7,10 +7,7 @@ pub async fn ack_command(command: &str) -> bool {
 
     let input = get_user_input().await;
 
-    match input.trim().to_lowercase().as_str() {
-        "yes" | "y" => true,
-        _ => false,
-    }
+    matches!(input.trim().to_lowercase().as_str(), "yes" | "y")
 }
 
 pub async fn get_user_input() -> String {

@@ -1,6 +1,7 @@
 use tokio_util::sync::CancellationToken;
 pub mod ack;
 pub mod ai;
+pub mod cmd_parse;
 pub mod model;
 pub mod pwsh;
 
