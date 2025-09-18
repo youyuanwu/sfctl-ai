@@ -1,13 +1,14 @@
 use rmcp::{
+    ServerHandler,
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::{ErrorData as McpError, *},
-    schemars, tool, tool_handler, tool_router, ServerHandler,
+    schemars, tool, tool_handler, tool_router,
 };
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
-use schemars::JsonSchema;
-use std::io::Write;
 use std::fs::OpenOptions;
+use std::io::Write;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -19,7 +20,8 @@ fn log_to_file(message: &str) {
     if let Ok(mut file) = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("logs/mcp-server.log") {
+        .open("logs/mcp-server.log")
+    {
         let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
         let _ = writeln!(file, "[{}] {}", timestamp, message);
     }
@@ -34,7 +36,7 @@ pub struct ServiceFabricServer {
 impl ServiceFabricServer {
     pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let pwsh_session = PwshSession::new()?;
-        Ok(Self { 
+        Ok(Self {
             tool_router: Self::tool_router(),
             pwsh_session: Arc::new(Mutex::new(pwsh_session)),
         })
@@ -62,9 +64,9 @@ impl ServiceFabricServer {
     ) -> Result<CallToolResult, McpError> {
         let endpoint = endpoint.unwrap_or_else(|| "localhost:19000".to_string());
         log_to_file(&format!("sf_connect called with endpoint: {}", endpoint));
-        
+
         let mut session = self.pwsh_session.lock().await;
-        
+
         // First import the Service Fabric module
         match session.run_command("Import-Module ServiceFabric").await {
             Ok(_) => log_to_file("ServiceFabric module imported successfully"),
@@ -77,19 +79,28 @@ impl ServiceFabricServer {
                 });
             }
         }
-        
+
         // Connect to the cluster
-        let connect_command = format!("Connect-ServiceFabricCluster -ConnectionEndpoint {}", endpoint);
+        let connect_command = format!(
+            "Connect-ServiceFabricCluster -ConnectionEndpoint {}",
+            endpoint
+        );
         match session.run_command(&connect_command).await {
             Ok(output) => {
                 log_to_file(&format!("Connected to SF cluster: {}", output));
-                Ok(CallToolResult::success(vec![Content::text(format!("Connected to Service Fabric cluster at {}\n{}", endpoint, output))]))
+                Ok(CallToolResult::success(vec![Content::text(format!(
+                    "Connected to Service Fabric cluster at {}\n{}",
+                    endpoint, output
+                ))]))
             }
             Err(e) => {
                 log_to_file(&format!("Failed to connect to SF cluster: {}", e));
                 Err(McpError {
                     code: ErrorCode(-32603),
-                    message: Cow::from(format!("Failed to connect to Service Fabric cluster: {}", e)),
+                    message: Cow::from(format!(
+                        "Failed to connect to Service Fabric cluster: {}",
+                        e
+                    )),
                     data: None,
                 })
             }
@@ -102,9 +113,9 @@ impl ServiceFabricServer {
         Parameters(ServiceFabricCommandParams { command }): Parameters<ServiceFabricCommandParams>,
     ) -> Result<CallToolResult, McpError> {
         log_to_file(&format!("sf_command called with: {}", command));
-        
+
         let mut session = self.pwsh_session.lock().await;
-        
+
         match session.run_command(&command).await {
             Ok(output) => {
                 log_to_file(&format!("SF command executed successfully: {}", command));
@@ -138,4 +149,3 @@ impl ServerHandler for ServiceFabricServer {
         }
     }
 }
-

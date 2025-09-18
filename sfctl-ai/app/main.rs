@@ -1,7 +1,7 @@
 mod mcp_server;
 
 use mcp_server::ServiceFabricServer;
-use rmcp::{transport::stdio, ServiceExt};
+use rmcp::{ServiceExt, transport::stdio};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

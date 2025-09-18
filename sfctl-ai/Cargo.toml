@@ -5,6 +5,10 @@ edition = "2024"
 
 [[bin]]
 name = "sfctl-ai"
+path = "src/main.rs"
+
+[[bin]]
+name = "sfctl-ai-mcp"
 path = "app/main.rs"
 
 [dependencies]
