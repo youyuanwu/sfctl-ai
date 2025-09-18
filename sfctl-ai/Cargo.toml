@@ -5,11 +5,11 @@ edition = "2024"
 
 [[bin]]
 name = "sfctl-ai"
-path = "src/main.rs"
+path = "app/main.rs"
 
 [[bin]]
 name = "sfctl-ai-mcp"
-path = "app/main.rs"
+path = "app/mcp_main.rs"
 
 [dependencies]
 tokio.workspace = true
