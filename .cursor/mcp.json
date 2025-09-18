@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "DNS Lookup (Dev)": {
-      "command": "cargo",
-      "args": ["run", "--package", "dns-mcp-server"],
-      "stdio": true
-    }
-  }
-}

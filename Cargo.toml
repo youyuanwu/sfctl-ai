@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["sfctl-ai", "dns-mcp-server"]
+members = ["sfctl-ai"]
 
 [workspace.dependencies]
 tokio = { version = "1", default-features = false, features = [
