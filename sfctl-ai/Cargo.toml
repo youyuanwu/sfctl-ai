@@ -7,6 +7,10 @@ edition = "2024"
 name = "sfctl-ai"
 path = "app/main.rs"
 
+[[bin]]
+name = "sfctl-ai-mcp"
+path = "app/mcp_main.rs"
+
 [dependencies]
 tokio.workspace = true
 tokio-util.workspace = true
@@ -17,3 +21,9 @@ tracing-subscriber.workspace = true
 tracing.workspace = true
 tracing-appender.workspace = true
 futures.workspace = true
+rmcp = { workspace = true, features = ["server", "transport-io", "macros"] }
+reqwest.workspace = true
+schemars.workspace = true
+chrono.workspace = true
+
+

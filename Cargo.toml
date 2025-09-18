@@ -20,3 +20,7 @@ tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 tracing = "0.1"
 tracing-appender = "0.2"
 futures = "0.3"
+rmcp = "0.6.4"
+reqwest = "0.12"
+schemars = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
