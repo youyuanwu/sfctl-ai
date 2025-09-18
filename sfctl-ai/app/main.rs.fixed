@@ -1,0 +1,58 @@
+mod mcp_server;
+
+use std::fs::{OpenOptions, create_dir_all};
+use std::io::Write;
+
+fn log_to_file(message: &str) {
+    if let Err(_) = create_dir_all("logs") {
+        return; // Silently fail if can't create logs directory
+    }
+    
+    if let Ok(mut file) = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("logs/main.log") {
+        let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        let _ = writeln!(file, "[{}] {}", timestamp, message);
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create logs directory
+    if let Err(_) = create_dir_all("logs") {
+        // Don't use eprintln or println as they interfere with MCP protocol
+    }
+    
+    // Log startup
+    log_to_file("Main process starting");
+    
+    // Set up signal handling for Ctrl+C
+    let ctrl_c = tokio::signal::ctrl_c();
+    
+    // Start the MCP server in a separate task
+    let server_task = tokio::spawn(async {
+        match mcp_server::start_mcp_server().await {
+            Ok(_) => {
+                log_to_file("MCP server completed successfully");
+            }
+            Err(e) => {
+                // Log to file instead of stderr
+                log_to_file(&format!("Error in MCP server: {}", e));
+            }
+        }
+    });
+    
+    // Wait for Ctrl+C or server to exit
+    tokio::select! {
+        _ = ctrl_c => {
+            log_to_file("Received Ctrl+C, shutting down...");
+        }
+        _ = server_task => {
+            log_to_file("Server task completed");
+        }
+    }
+    
+    log_to_file("Main process shutting down");
+    Ok(())
+}

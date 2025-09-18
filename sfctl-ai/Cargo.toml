@@ -17,3 +17,9 @@ tracing-subscriber.workspace = true
 tracing.workspace = true
 tracing-appender.workspace = true
 futures.workspace = true
+rmcp = { workspace = true, features = ["server", "transport-io", "macros"] }
+reqwest.workspace = true
+schemars.workspace = true
+chrono.workspace = true
+
+

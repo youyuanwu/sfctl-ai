@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["sfctl-ai"]
+members = ["sfctl-ai", "dns-mcp-server"]
 
 [workspace.dependencies]
 tokio = { version = "1", default-features = false, features = [
@@ -20,3 +20,7 @@ tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 tracing = "0.1"
 tracing-appender = "0.2"
 futures = "0.3"
+rmcp = { git = "https://github.com/modelcontextprotocol/rust-sdk", package = "rmcp" }
+reqwest = "0.12"
+schemars = "1.0"
+chrono = { version = "0.4", features = ["serde"] }

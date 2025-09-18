@@ -1,0 +1,83 @@
+use rmcp::{
+    ErrorData as McpError,
+    model::{CallToolResult, Content, Implementation, ProtocolVersion, ServerCapabilities, ServerInfo},
+    handler::server::{tool::ToolRouter, wrapper::Parameters, ServerHandler},
+    service::ServiceExt,
+    tool, tool_handler, tool_router,
+    serde::{Deserialize, Serialize}, // rmcp re-exports serde
+};
+
+// 👇 Make rmcp’s re-export visible as a crate *named* `schemars` for the derive macro
+use rmcp::schemars as schemars;
+use schemars::JsonSchema;
+use tracing_appender::rolling;
+use tracing_subscriber::fmt;
+
+#[derive(Clone)]
+pub struct WeatherServer {
+    tool_router: ToolRouter<WeatherServer>,
+}
+
+impl WeatherServer {
+    pub fn new() -> Self {
+        Self { tool_router: Self::tool_router() }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct GetWeatherParams {
+    /// City name, e.g. "Seattle"
+    pub city: String,
+}
+
+#[tool_router]
+impl WeatherServer {
+    #[tool(name = "get_weather", description = "Get a dummy weather report for a city")]
+    async fn get_weather(
+        &self,
+        Parameters(GetWeatherParams { city }): Parameters<GetWeatherParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let forecast = format!("The weather in {} is sunny, 25°C (dummy).", city);
+        Ok(CallToolResult::success(vec![Content::text(forecast)]))
+    }
+}
+
+#[tool_handler]
+impl ServerHandler for WeatherServer {
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo {
+            protocol_version: ProtocolVersion::V_2024_11_05,
+            capabilities: ServerCapabilities::builder().enable_tools().build(),
+            server_info: Implementation::from_build_env(),
+            instructions: Some("This MCP server exposes a dummy tool: get_weather.".into()),
+        }
+    }
+}
+
+pub async fn start_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
+    // Create logs directory if it doesn't exist
+    if !std::path::Path::new("logs").exists() {
+        std::fs::create_dir("logs").ok();
+    }
+    
+    // Set up file-based logging to avoid stdout/stderr interference
+    let file_appender = rolling::daily("logs", "mcp-server.log");
+    fmt()
+        .with_writer(file_appender)
+        .with_ansi(false)
+        .init();
+
+    // Log that we're starting up
+    tracing::info!("MCP Server starting up...");
+    
+    // Create and serve the server
+    let server = WeatherServer::new();
+    
+    // This will run until the server is explicitly terminated
+    // The await here blocks until the server completes or errors
+    server.serve((tokio::io::stdin(), tokio::io::stdout())).await?;
+    
+    // We'll only get here if the server terminates normally
+    tracing::info!("MCP Server shutting down...");
+    Ok(())
+}

@@ -1,0 +1,26 @@
+mod mcp_server;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Set up signal handling for Ctrl+C
+    let ctrl_c = tokio::signal::ctrl_c();
+    
+    // Start the MCP server in a separate task
+    let server_task = tokio::spawn(async {
+        if let Err(e) = mcp_server::start_mcp_server().await {
+            eprintln!("Error in MCP server: {}", e);
+        }
+    });
+    
+    // Wait for Ctrl+C or server to exit
+    tokio::select! {
+        _ = ctrl_c => {
+            println!("Received Ctrl+C, shutting down...");
+        }
+        _ = server_task => {
+            // Server exited on its own
+        }
+    }
+    
+    Ok(())
+}
