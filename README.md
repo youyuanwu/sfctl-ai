@@ -32,31 +32,12 @@ First, ensure you have a local Service Fabric cluster running:
 
 ```bash
 cd sfctl-ai/sfctl-ai
-cargo build --release
-cargo install --path . --bin sfctl-ai-mcp
+cargo build --bin sfctl-ai-mcp
 ```
 
 ### 3. Configure VS Code
 
-Create `.vscode/mcp.json` in your workspace:
-
-```json
-{
-  "servers": {
-    "sfctl-ai-server": {
-      "type": "stdio",
-      "command": "C:\\Users\\[USERNAME]\\.cargo\\bin\\sfctl-ai-mcp.exe",
-      "args": [],
-      "env": {
-        "RUST_LOG": "debug"
-      }
-    }
-  },
-  "inputs": []
-}
-```
-
-**Note**: Replace `[USERNAME]` with your actual Windows username. The full path ensures VS Code can find the executable.
+Use the default `.vscode/mcp.json` in the current vscode workspace.
 
 **Note**: The `RUST_LOG: debug` environment variable helps with troubleshooting if needed.
 
