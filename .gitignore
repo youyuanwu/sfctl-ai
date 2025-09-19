@@ -1,5 +1,7 @@
 target
 *.info
 codecov.json
-.vscode
 logs
+
+.vscode/*
+!.vscode/mcp.json

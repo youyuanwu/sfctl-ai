@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "sfctl-ai-server": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/target/debug/sfctl-ai-mcp.exe",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "env": {
+        "RUST_LOG": "debug"
+      }
+    }
+  },
+  "inputs": []
+}
